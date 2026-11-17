@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0e14">
+<title>Поиск аккаунта</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b0e14;
+  --panel: #151a25;
+  --line: rgba(255,255,255,.09);
+  --text: #f4f6fb;
+  --muted: #9aa4b5;
+  --accent: #8293ff;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(105,122,255,.14), transparent 48%),
+    radial-gradient(ellipse at 100% 100%, rgba(82,101,212,.08), transparent 42%),
+    var(--bg);
+}
+.card {
+  width: min(100%, 510px);
+  padding: 38px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: linear-gradient(160deg, rgba(27,33,47,.98), rgba(17,21,30,.98));
+  box-shadow: 0 28px 90px rgba(0,0,0,.42);
+}
+.icon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(130,147,255,.22);
+  border-radius: 17px;
+  color: #b5c0ff;
+  background: rgba(130,147,255,.11);
+  font-size: 25px;
+}
+h1 {
+  margin: 0 auto 12px;
+  max-width: 390px;
+  font-size: clamp(22px, 5vw, 27px);
+  line-height: 1.3;
+  letter-spacing: -.7px;
+}
+.description {
+  margin: 0 auto 24px;
+  max-width: 390px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.input {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 13px;
+  outline: none;
+  color: var(--text);
+  background: #0e131d;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.input::placeholder { color: #687386; }
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(130,147,255,.13);
+}
+.button {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 13px;
+  border: 0;
+  border-radius: 13px;
+  color: white;
+  background: linear-gradient(135deg, #8293ff, #596bd7);
+  box-shadow: 0 10px 28px rgba(91,111,235,.2);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .2s, filter .2s;
+}
+.button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.button:active { transform: translateY(0); }
+.message {
+  min-height: 18px;
+  margin: 12px 0 0;
+  color: #ff9292;
+  font-size: 12px;
+}
+
+/* Анимированные состояния поиска */
+.state { animation: stateIn .45s ease both; }
+.loader {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(130,147,255,.25);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(130,147,255,.22), rgba(130,147,255,.04) 65%);
+  box-shadow: 0 0 35px rgba(105,122,255,.16), inset 0 0 20px rgba(130,147,255,.08);
+}
+.loader::before, .loader::after {
+  content: "";
+  position: absolute;
+  border: 2px solid transparent;
+  border-top-color: #aebaff;
+  border-right-color: rgba(130,147,255,.55);
+  border-radius: 50%;
+  inset: -6px;
+  animation: spin 1.15s linear infinite;
+}
+.loader::after {
+  inset: 7px;
+  border-top-color: #6f83ff;
+  border-right-color: transparent;
+  animation-duration: .8s;
+  animation-direction: reverse;
+}
+.loader span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #c4ccff;
+  box-shadow: 0 0 18px 5px rgba(130,147,255,.65);
+  animation: pulse 1s ease-in-out infinite;
+}
+.progress {
+  width: 100%;
+  height: 6px;
+  margin: 26px auto 0;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(255,255,255,.08);
+}
+.progress span {
+  display: block;
+  width: 38%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #6478f5, #b4beff);
+  box-shadow: 0 0 14px rgba(130,147,255,.5);
+  animation: progressMove 2.15s ease-in-out forwards;
+}
+.success-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 19px;
+  color: #b8ffd8;
+  border: 1px solid rgba(91,224,155,.25);
+  background: rgba(64,190,123,.12);
+  box-shadow: 0 0 28px rgba(64,190,123,.12);
+  font-size: 30px;
+  animation: successPop .45s cubic-bezier(.2,.8,.2,1.3) both;
+}
+.account-preview {
+  margin: 0 0 12px;
+  padding: 13px 16px;
+  border: 1px solid rgba(130,147,255,.2);
+  border-radius: 12px;
+  color: #dce1ff;
+  background: rgba(130,147,255,.08);
+  font-size: 14px;
+  font-weight: 700;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse {
+  0%, 100% { transform: scale(.8); opacity: .7; }
+  50% { transform: scale(1.25); opacity: 1; }
+}
+@keyframes progressMove {
+  0% { width: 4%; }
+  35% { width: 48%; }
+  70% { width: 78%; }
+  100% { width: 100%; }
+}
+@keyframes successPop {
+  from { transform: scale(.65); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes stateIn {
+  from { transform: translateY(9px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (max-width: 520px) {
+  body { padding: 16px; }
+  .card { padding: 30px 21px; border-radius: 20px; }
+}
+</style>
+</head>
+<body>
+  <main class="card">
+    <section id="entry">
+      <div class="icon" aria-hidden="true">⌕</div>
+      <h1>Вставьте ссылку на аккаунт либо введите username пользователя, за которым вы хотите посмотреть</h1>
+      <p class="description">Можно указать username или публичную ссылку на профиль.</p>
+      <form id="accountForm">
+        <input
+          class="input"
+          id="account"
+          type="text"
+          placeholder="@username или https://t.me/username"
+          maxlength="200"
+          autocomplete="off"
+          aria-label="Ссылка или username пользователя"
+        >
+        <button class="button" id="continueButton" type="submit">Продолжить</button>
+        <p class="message" id="message" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="loading" class="state" hidden>
+      <div class="loader" aria-hidden="true"><span></span></div>
+      <h1>Ищем пользователя…</h1>
+      <p class="description">Проверяем указанный username и готовим результат. Это займёт пару секунд.</p>
+      <div class="progress"><span></span></div>
+    </section>
+
+    <section id="found" class="state" hidden>
+      <div class="success-icon" aria-hidden="true">✓</div>
+      <h1>Пользователь найден!</h1>
+      <p class="description">Username проверен по формату. Можно перейти к следующему шагу.</p>
+      <div class="account-preview" id="accountPreview"></div>
+      <button class="button" id="connectButton" type="button">Подключить функцию</button>
+    </section>
+  </main>
+
+<script>
+const form = document.getElementById('accountForm');
+const entry = document.getElementById('entry');
+const loading = document.getElementById('loading');
+const found = document.getElementById('found');
+const message = document.getElementById('message');
+
+form.addEventListener('submit', function (event) {
+  event.preventDefault();
+  message.textContent = '';
+
+  let account = document.getElementById('account').value.trim();
+
+  // Принимаем @username, username и публичную ссылку t.me/username.
+  account = account
+    .replace(/^https?:\/\/(www\.)?t\.me\//i, '')
+    .replace(/^@/, '')
+    .replace(/\/$/, '');
+
+  if (account.includes('?')) account = account.split('?')[0];
+
+  if (!/^[A-Za-z0-9_]{5,32}$/.test(account)) {
+    message.textContent = 'Введите корректный username (от 5 до 32 символов) или ссылку вида https://t.me/example';
+    return;
+  }
+
+  // Сначала показываем загрузку. Сохранение — необязательное.
+  entry.hidden = true;
+  found.hidden = true;
+  loading.hidden = false;
+
+  try {
+    localStorage.setItem('tg_target_account', account);
+  } catch (error) {
+    // Страница продолжит работать, даже если хранилище браузера недоступно.
+  }
+
+  window.setTimeout(function () {
+    loading.hidden = true;
+    found.hidden = false;
+    document.getElementById('accountPreview').textContent = '@' + account;
+  }, 2600);
+});
+
+document.getElementById('connectButton').addEventListener('click', function () {
+  window.location.href = 'withdraw.html';
+});
+</script>
+</body>
+</html>
